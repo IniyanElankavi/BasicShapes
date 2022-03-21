@@ -4,121 +4,101 @@ using UnityEngine;
 
 public class Interactions : MonoBehaviour
 {
-    public Light[] _lights;
-    bool lightSwitch = false;
-    public Material[] TVMaterial;
-    public Renderer TVRenderer;
-    public int channel = 0;
-    public bool isPointerOnLight, isPointerOnTV = false;
-    float timeOnLight, timeOnTV = 1.0f;
-    bool TVGazed, LightGazed = false;
 
+    public bool isPointerOnObjects = false;
+    float timeOnShapes = 1.0f;
+    bool ShapeGazed = false;
+    public GameObject selectedShape;
+    public Material selectedShapeMat, FadeMaterial;
+    public Color selectedShapeColour;
+    public GameObject picker;
+    GameObject player;
+    public GameObject[] allShapes, allTeleportPoints;
+    List<Material> listOfRenderers = new List<Material>();
 
-    public void log()
+    public void GazeOnShapes()
     {
-        Debug.Log("TEST BUTTON");
-    }
+        ShapeGazed = true;
+        selectedShapeMat = selectedShape.GetComponent<Material>();
+        selectedShapeColour = selectedShape.GetComponent<Renderer>().material.color;
+        FadeAllObjects(true);
+        ColliderSwitch(false);
+        selectedShape.GetComponent<Renderer>().material = selectedShapeMat;
+        selectedShape.GetComponent<Renderer>().material.color = selectedShapeColour;
 
-    private void Start()
-    {
-        _lights = GameObject.Find("Interior").GetComponentsInChildren<Light>();
-        TVRenderer.material = TVMaterial[0];
-    }
-
-    public void GazeOnTV()
-    {
-        TVGazed = true;
-        channel += 1;
-
-        switch (channel)
+        if (GameObject.FindGameObjectWithTag("Picker") == null)
         {
-            case 1:
-                TVRenderer.material = TVMaterial[1];
-                break;
-            case 2:
-                TVRenderer.material = TVMaterial[2];
-                break;
-            case 3:
-                TVRenderer.material = TVMaterial[0];
-                break;
-            default:
-                break;
-        }
-
-        if(channel == 3)
-        {
-            channel = 0;
+            GameObject PickerCanvas = Instantiate(picker);
+            PickerCanvas.GetComponentInChildren<Animator>().SetBool("Open", true);
+            PickerCanvas.transform.position = Camera.main.transform.position + Camera.main.transform.forward * 1.5f;
+            PickerCanvas.transform.rotation = Camera.main.transform.rotation;
+            PickerCanvas.GetComponentInChildren<ColourPicker>().SelectedObject = selectedShape;
         }
     }
 
-    public void TurnOnOffLight()
+    public void ApplySelection(Color m)
     {
-        LightGazed = true;
-        lightSwitch =! lightSwitch;
+        selectedShape.GetComponent<Renderer>().material.color = m;
+    }
 
-        for (int i = 0; i < _lights.Length; i++)
+    public void ColliderSwitch(bool isON)
+    {
+        for (int i = 0; i < allShapes.Length; i++)
         {
-            if (lightSwitch)
+            allShapes[i].GetComponent<Collider>().enabled = isON;
+        }
+
+        for (int i = 0; i < allTeleportPoints.Length; i++)
+        {
+            allTeleportPoints[i].GetComponent<Collider>().enabled = isON;
+        }
+    }
+
+    public void FadeAllObjects(bool isFade)
+    {
+        if (isFade)
+        {
+            for (int i = 0; i < allShapes.Length; i++)
             {
-                _lights[i].enabled = false;
-            }
-            else
-            {
-                _lights[i].enabled = true;
+                listOfRenderers.Add(allShapes[i].GetComponent<Renderer>().material);
+                allShapes[i].GetComponent<Renderer>().material = FadeMaterial;
             }
         }
+        else
+        {
+            for (int i = 0; i < allShapes.Length; i++)
+            {
+                allShapes[i].GetComponent<Renderer>().material = listOfRenderers[i];
+            }
+        }
+    }
+    
+    public void PointerInObject(GameObject obj)
+    {
+        selectedShape = obj;
+        isPointerOnObjects = true;
+    }
+    public void PointerOutObject()
+    {
+        isPointerOnObjects = false;
+        ShapeGazed = false;
     }
 
-    public void PointerOnTV()
-    {
-        isPointerOnTV = true;
-    }
-    public void PointerOffTV()
-    {
-        isPointerOnTV = false;
-        TVGazed = false;
-    }
-
-    public void PointerOnLight()
-    {
-        isPointerOnLight = true;
-    }
-
-    public void PointerOffLight()
-    {
-        isPointerOnLight = false;
-        LightGazed = false;
-    }
-
+    
     private void Update()
-    {
-        if (isPointerOnLight)
+    {        
+        if (isPointerOnObjects)
         {
-            timeOnLight -= Time.deltaTime;
-            if (timeOnLight < 0)
+            timeOnShapes -= Time.deltaTime;
+            if (timeOnShapes < 0)
             {
-                if(!LightGazed)
-                 TurnOnOffLight();
+                if(!ShapeGazed)
+                 GazeOnShapes();
             }
         }
         else
         {
-            timeOnLight = 1.0f;
-        }
-
-
-        if (isPointerOnTV)
-        {
-            timeOnTV -= Time.deltaTime;
-            if (timeOnTV < 0)
-            {
-                if(!TVGazed)
-                 GazeOnTV();
-            }
-        }
-        else
-        {
-            timeOnTV = 1.0f;
+            timeOnShapes = 1.0f;
         }
     }
 

@@ -25,6 +25,7 @@ public class TeleportController : MonoBehaviour
             timeLeft -= Time.deltaTime;
             if (timeLeft < 0)
             {
+                Destroy(GameObject.FindGameObjectWithTag("Picker"));
                 Player.transform.position = new Vector3(transform.position.x, transform.position.y + 1.3f, transform.position.z);
             }
         }

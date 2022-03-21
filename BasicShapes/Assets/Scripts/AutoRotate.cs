@@ -8,6 +8,7 @@ public class AutoRotate : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.Rotate(Vector3.up * speed);
+        if(gameObject.GetComponent<Collider>().enabled)
+            transform.Rotate(Vector3.up * speed);
     }
 }
