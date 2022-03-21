@@ -14,6 +14,11 @@ public class Interactions : MonoBehaviour
     bool TVGazed, LightGazed = false;
 
 
+    public void log()
+    {
+        Debug.Log("TEST BUTTON");
+    }
+
     private void Start()
     {
         _lights = GameObject.Find("Interior").GetComponentsInChildren<Light>();
